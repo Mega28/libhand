@@ -32,6 +32,7 @@
 # include "OGRE/OgreTextureManager.h"
 # include "OGRE/OgreTexture.h"
 # include "OGRE/OgreHardwarePixelBuffer.h"
+# include "OGRE/Ogre.h"
 
 # include "OGRE/OgreEntity.h"
 # include "OGRE/OgreBone.h"
@@ -55,7 +56,7 @@
 namespace libhand {
 
 using namespace std;
-using namespace boost;
+//using namespace boost;
 using namespace Ogre;
 
 class HandRendererPrivate {
@@ -116,9 +117,7 @@ class HandRendererPrivate {
 
   const string scene_rsrc_name_;
 
-  shared_array<char> pixel_data_;
-  boost::shared_ptr<GLPlugin> gl_plugin_;
-  boost::shared_ptr<OctreePlugin> octree_plugin_;
+  boost::shared_array<char> pixel_data_;
   boost::shared_ptr<Root> root_;
 
   SceneSpec scene_spec_;
@@ -134,7 +133,7 @@ class HandRendererPrivate {
   Viewport *viewport_;
   Entity *hand_entity_;
   Node *hand_node_;
-  Skeleton *hand_skeleton_;
+  SkeletonInstance *hand_skeleton_;
 
   float initial_cam_distance_;
   HandCameraSpec camera_spec_;
@@ -194,8 +193,6 @@ HandRendererPrivate::HandRendererPrivate() :
   render_tex_rsrc_name_("HandRenderer RenderTexture Resources"),
   render_tex_name_("HandRenderer RenderTexture"),
   scene_rsrc_name_("HandRenderer Scene Resources"),
-  gl_plugin_(new GLPlugin),
-  octree_plugin_(new OctreePlugin),
   scene_mgr_(NULL),
   resource_mgr_(NULL),
   render_target_(NULL),
@@ -218,13 +215,9 @@ void HandRendererPrivate::Setup(int width, int height) {
     return;
   }
 
-  gl_plugin_.reset(new GLPlugin);
-  octree_plugin_.reset(new OctreePlugin);
-
   root_.reset(new Root("", "", "hand_renderer.log"));
-
-  root_->installPlugin(gl_plugin_.get());
-  root_->installPlugin(octree_plugin_.get());
+  root_->loadPlugin("Plugin_OctreeSceneManager");
+  root_->loadPlugin("RenderSystem_GL");
 
   RenderSystemList render_systems = root_->getAvailableRenderers();
   if (!render_systems.size()) {

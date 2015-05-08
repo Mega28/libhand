@@ -1,34 +1,32 @@
 CMAKE_MINIMUM_REQUIRED (VERSION 2.8.6)
 
 IF(APPLE)
-  LIST(APPEND CMAKE_PREFIX_PATH "/usr/local")
-  LIST(APPEND CMAKE_MODULE_PATH "/usr/local/Cellar/ogre/1.7.4/CMake")
+  LIST(APPEND CMAKE_PREFIX_PATH "/opt/local")
+  LIST(APPEND CMAKE_MODULE_PATH "/opt/local/share/cmake/modules")
   LIST(APPEND CMAKE_FRAMEWORK_PATH "/opt/local/Library/Frameworks")
   SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a;.framework;.dylib;.so")
-  LIST(APPEND LibHand_EXTRA_LIBS "-lboost_system -lboost_date_time -lz -lm -lbz2")
-  SET(CMAKE_OSX_DEPLOYMENT_TARGET "10.9")
-ELSE(APPLE)
-  IF(UNIX)
-    LIST(APPEND CMAKE_MODULE_PATH "/usr/local/lib/OGRE/cmake")
-    LIST(APPEND LibHand_EXTRA_LIBS "-ldl -lXt")
-    ADD_DEFINITIONS(-fPIC)
-  ENDIF()
+ELSEIF(UNIX)
+  LIST(APPEND CMAKE_MODULE_PATH "/usr/local/lib/OGRE/cmake")
+  LIST(APPEND LibHand_EXTRA_LIBS "-ldl -lXt")
+  ADD_DEFINITIONS(-fPIC)
 ENDIF(APPLE)
 
-ADD_DEFINITIONS(-O3)
+IF(UNIX OR APPLE)
+  ADD_DEFINITIONS(-O3)
+ENDIF()
 
 # Uncomment the following line for development of the library
 # It will help against unwanted bugs
 # INCLUDE(copts_stricter_warnings.cmake)
 
-SET(BUILD_SHARED_LIBS OFF)
+SET(BUILD_SHARED_LIBS ON)
 
 FIND_PACKAGE(Boost REQUIRED)
 FIND_PACKAGE(OpenCV REQUIRED)
 
-SET(OGRE_STATIC TRUE)
+#SET(OGRE_STATIC TRUE)
 FIND_PACKAGE(OGRE REQUIRED)
-
+INCLUDE_DIRECTORIES(${OpenCV_INCLUDE_DIRS})
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 LINK_DIRECTORIES(${Boost_LIBRARY_DIRS})
 
@@ -60,7 +58,7 @@ ADD_LIBRARY(hand_utils
   simple_slider.cc
   text_printer.cc)
 
-TARGET_LINK_LIBRARIES(hand_utils ${OpenCV_LIBS} ${LibHand_EXTRA_LIBS})
+TARGET_LINK_LIBRARIES(hand_utils ${OpenCV_LIBS})
 
 ADD_LIBRARY(hand_hog
   hog_cell.cc
@@ -86,8 +84,8 @@ TARGET_LINK_LIBRARIES(hand_renderer
   ${EXTRA_LINUX_LIBS}
   ${OpenCV_LIBS}
   ${OGRE_LIBRARIES}
-  ${OGRE_RenderSystem_GL_LIBRARIES}
   ${OGRE_LIBRARY}
+  ${OGRE_RenderSystem_GL_LIBRARIES}
   ${OGRE_Plugin_OctreeSceneManager_LIBRARIES})
 
 message(STATUS "==================================================")
@@ -110,7 +108,6 @@ message(STATUS "X11_Xrandr_LIB: ${X11_Xrandr_LIB}")
 message(STATUS "Cocoa_LIBRARIES: ${Cocoa_LIBRARIES}")
 message(STATUS "Carbon_LIBRARIES: ${Carbon_LIBRARIES}")
 message(STATUS "==================================================")
-
 install(TARGETS
   hand_hog
   hand_renderer
@@ -126,7 +123,8 @@ ADD_EXECUTABLE(pose_designer
 TARGET_LINK_LIBRARIES(pose_designer
   hand_hog
   hand_renderer
-  hand_utils)
+  hand_utils
+)
 
 SET(LibHand_INCLUDE_DIRS
   ${CMAKE_CURRENT_LIST_DIR}
